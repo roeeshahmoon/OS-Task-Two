@@ -23,5 +23,3 @@ void peterson_locks_init(void) {
 }
 
 
-
-

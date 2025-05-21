@@ -18,61 +18,72 @@ int tournament_create(int processes) {
         return -1; // Not a power of 2 or too large
 
     num_processes = processes;
+    
+    // Calculate levels (log2(processes))
     levels = 0;
     for (int i = processes; i > 1; i >>= 1)
         levels++;
 
-
-    // locks = malloc(sizeof(struct peterson_lock) * (processes - 1));
-    // if (!locks) return -1;
-
+    // Create locks
     for (int i = 0; i < processes - 1; i++) {
-        // peterson_init(&locks[i]);
-        locks[i] = peterson_create();
+        int id = peterson_create();
+        if (id < 0) return -1;
+        locks[i] = id;
     }
 
+    // Fork children
     for (int i = 0; i < processes; i++) {
         int pid = fork();
-        if (pid < 0) return -1;
+        if (pid < 0) return -1; // fork failed
         if (pid == 0) {
+            // Child process logic
             process_index = i;
 
-            
             for (int l = 0; l < levels; l++) {
                 int bit_pos = levels - l - 1;
                 roles[l] = (i & (1 << bit_pos)) >> bit_pos;
-                int lock_id = i >> (levels - l);
-                lock_indices[l] = (1 << l) - 1 + lock_id;
+                int lock_l = i >> (levels - l);
+                lock_indices[l] = lock_l + ((1 << l) - 1);
             }
-
-            return i; // Tournament ID
+            return i; // Child returns its tournament ID
+        }
+        if (pid > 0) {
+            for (int i = 0; i < processes; i++) wait(0);
+            // Only parent cleans up
+            for (int i = 0; i < processes - 1; i++) {
+                peterson_destroy(locks[i]);
+            }
         }
     }
 
-
-    for (int i = 0; i < processes; i++)
+    // Parent process exits after spawning children
+    for (int i = 0; i < processes; i++){
         wait(0);
-
-    exit(0);
-    return -1; 
+        printf("Parent process %d: child %d exited\n", getpid(), i);
+        return i;
+    }
+    return 0;
 }
+
 
 int tournament_acquire(void) {
     for (int l = 0; l < levels; l++) {
-        int idx = lock_indices[l];
+        int lock_id = locks[lock_indices[l]];
         int role = roles[l];
         // peterson_acquire(&locks[idx], role);
-        peterson_acquire(locks[idx], role);
+        if(peterson_acquire(lock_id, role) < 0) {
+            return -1; // Failed to acquire lock
+        }   
     }
     return 0;
 }
 
 int tournament_release(void) {
-    for (int l = levels - 1; l >= 0; l--) {
-        int idx = lock_indices[l];
-        int role = roles[l];
-        // peterson_release(&locks[idx], role);
-        peterson_release(locks[idx], role);
-    }
-    return 0;
+  for (int l = levels - 1; l >= 0; l--) {
+    int lock_id = locks[lock_indices[l]];
+    if (peterson_release(lock_id, roles[l]) < 0)
+      return -1;
+  }
+  return 0;
 }
+

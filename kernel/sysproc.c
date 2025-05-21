@@ -100,6 +100,7 @@ uint64 sys_peterson_create(void) {
     if (__sync_lock_test_and_set(&peterson_locks[i].active, 1) == 0) {
       // lock[i] is now active, initialize flags and turn
       __sync_synchronize();
+      printf("Creating lock %d\n", i);
       peterson_locks[i].flag[0] = 0;
       peterson_locks[i].flag[1] = 0;
       peterson_locks[i].turn = 0;
@@ -112,6 +113,7 @@ uint64 sys_peterson_create(void) {
 
 
 uint64 sys_peterson_acquire(void) {
+  // printf("Acquiring lock system\n");
   int lock_id, role;
   argint(0, &lock_id);
   argint(1, &role);
@@ -126,6 +128,7 @@ uint64 sys_peterson_acquire(void) {
   int other = 1 - role;
   __sync_lock_test_and_set(&lock->flag[role], 1);
   __sync_synchronize();
+  printf("Acquiring lock %d, role %d\n", lock_id, role);
   lock->turn = other;
   __sync_synchronize();
 
@@ -158,14 +161,12 @@ uint64 sys_peterson_release(void) {
 }
 
 
-uint64 sys_peterson_destroy(void) {
+uint64 sys_peterson_destroy(void){
   int lock_id;
   argint(0, &lock_id);
-  if (lock_id < 0)
-    return -1;
-  if (lock_id < 0 || lock_id >= MAX_PETERSON_LOCKS)
-    return -1;
+     return -1;
   struct peterson_lock *lock = &peterson_locks[lock_id];
+  printf("Destroying lock %d\n", lock_id);
   if (lock->active == 0)
     return -1;
 

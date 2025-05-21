@@ -11,5 +11,6 @@ struct peterson_lock {
 extern struct peterson_lock peterson_locks[MAX_PETERSON_LOCKS];
 
 void peterson_locks_init(void);
-
+int peterson_create(void);
+int peterson_acquire(int id, int role);
 #endif
