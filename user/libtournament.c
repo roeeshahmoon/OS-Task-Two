@@ -48,21 +48,20 @@ int tournament_create(int processes) {
             return i; // Child returns its tournament ID
         }
         if (pid > 0) {
-            for (int i = 0; i < processes; i++) wait(0);
-            // Only parent cleans up
-            for (int i = 0; i < processes - 1; i++) {
-                peterson_destroy(locks[i]);
+            for (int i = 0; i < processes; i++){
+                wait(0);  
+                // printf("Parent process (PID: %d) created child (PID: %d)\n", getpid(), pid);
             }
+            // Only parent cleans up
+            // for (int i = 0; i < processes - 1; i++) {
+            //     peterson_destroy(locks[i]);
+            // }
+            // tournament 
         }
     }
 
-    // Parent process exits after spawning children
-    for (int i = 0; i < processes; i++){
-        wait(0);
-        printf("Parent process %d: child %d exited\n", getpid(), i);
-        return i;
-    }
-    return 0;
+    // printf("Parent process (PID: %d) child %d exited\n", getpid(), process_index);
+    return -10;
 }
 
 
@@ -70,7 +69,6 @@ int tournament_acquire(void) {
     for (int l = 0; l < levels; l++) {
         int lock_id = locks[lock_indices[l]];
         int role = roles[l];
-        // peterson_acquire(&locks[idx], role);
         if(peterson_acquire(lock_id, role) < 0) {
             return -1; // Failed to acquire lock
         }   

@@ -2,7 +2,7 @@
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    printf("Usage: tournament <num_processes>\n");
+    printf("Please enter num_processes for tournament\n");
     exit(1);
   }
 
@@ -13,13 +13,18 @@ int main(int argc, char *argv[]) {
   }
 
   int id = tournament_create(n);
-  if (id < 0) {
+  if (id == -1) {
     printf("Error creating tournament\n");
     exit(1);
   }
 
+  if (id < -1) {
+    // printf("Finish tournament\n");
+    exit(0);
+  }
+
   tournament_acquire();
-  printf("Process %d (PID: %d) in critical section\n", id, getpid());
+  printf("Tournament Id: %d (PID: %d) in critical section\n", id, getpid());
   tournament_release();
 
   exit(0);

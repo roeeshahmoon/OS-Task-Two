@@ -1,9 +1,13 @@
 {
   "files.associations": {
+    "*.dbclient-js": "javascript",
     "types.h": "c",
     "riscv.h": "c",
     "defs.h": "c",
-    "user.h": "c"
+    "user.h": "c",
+    "param.h": "c",
+    "spinlock.h": "c",
+    "peterson.h": "c"
   },
   "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "clang",

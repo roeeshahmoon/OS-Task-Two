@@ -1,6 +1,6 @@
 #ifndef PETERSON_H
 #define PETERSON_H
-#define MAX_PETERSON_LOCKS 15
+#define MAX_PETERSON_LOCKS 2048
 
 struct peterson_lock {
   int active;
